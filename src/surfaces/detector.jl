@@ -45,8 +45,7 @@ end
 function onintersect(detector::Detector{3}, ray::Ray{3}, distance::Float64, normal::SVector{3,Float64})
     x_size, y_size = size(detector)
     x_binsize, y_binsize = binsize(detector)
-    rotation_matrix = rotation(normal)
-    position_on_detector = inv(rotation_matrix) * (origin(ray, distance) - center(detector))
+    position_on_detector = invquaternionz(normal) * (origin(ray, distance) - center(detector))
     x_limit, y_limit = x_size / 2, y_size / 2
     abs(position_on_detector[1]) < x_limit || return nothing
     abs(position_on_detector[2]) < y_limit || return nothing

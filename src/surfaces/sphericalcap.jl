@@ -54,7 +54,7 @@ function minintersection!(minintersection::MinIntersection, spherical_cap::Spher
     b = 2 * dot(ray_direction, distance_apart)
     c = dot(distance_apart, distance_apart) - spherical_cap_radius^2
 
-    alpha_1, alpha_2 = roots(a, b, c)
+    alpha_1, alpha_2 = findroots(a, b, c)
 
     alpha_2 < 1e-10 && return nothing
 

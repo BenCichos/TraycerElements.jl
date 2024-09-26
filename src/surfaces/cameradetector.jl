@@ -8,16 +8,14 @@ mutable struct CameraDetector{N} <: Surface{N}
 
     function CameraDetector(origin::SVector{2,<:Real}, normal::SVector{2,<:Real}, size::Real; interface::Interface=ConsumingInterface(), resolution::Int=128, viewangle::Real=0.0, angleresolution::Int=1)
         plane = Plane(origin, normal, interface, size)
-        rotation_matrix = rotation(normal)
-        position = (i::Int) -> (rotation_matrix * SVector(i, 0.0)) + center(plane)
+        position = (i::Int) -> (quaterniony(normal) * SVector(i, 0.0)) + center(plane)
         counter = zeros(resolution, 1)
         new{2}(plane, position, counter, camera_ray_direction_fn(normal, viewangle), angleresolution)
     end
 
     function CameraDetector(origin::SVector{3,<:Real}, normal::SVector{3,<:Real}, size::Tuple{<:Real,<:Real}; interface::Interface=ConsumingInterface(), resolution::Int=128, viewangle::Real=0.0, angleresolution::Int=1)
         plane = Plane(origin, normal, interface, size)
-        rotation_matrix = rotation(normal)
-        position = (i::Int, j::Int) -> (rotation_matrix * (SVector((i - 0.5) * size[1] / resolution, (j - 0.5) * size[2] / resolution, 0.0) - SVector(size[1] / 2, size[2] / 2, 0.0))) + center(plane)
+        position = (i::Int, j::Int) -> (quaternionz(normal) * (SVector((i - 0.5) * size[1] / resolution, (j - 0.5) * size[2] / resolution, 0.0) - SVector(size[1] / 2, size[2] / 2, 0.0))) + center(plane)
         counter = zeros(resolution, resolution)
         new{3}(plane, position, counter, camera_ray_direction_fn(normal, viewangle), angleresolution)
     end
@@ -66,4 +64,4 @@ end
 
 @inline perp(v::SVector{3,<:Real}) = SVector(v[3], -v[2], v[1])
 
-camera_ray_direction_fn(normal::SVector{3,<:Real}, angle::Real) = ((c0::Real, c1::Real) -> rotate_vector(quatwithaxis(normal, 2pi * c0) * quatwithaxis(perp(normal), angle * c1), normal))
+camera_ray_direction_fn(normal::SVector{3,<:Real}, angle::Real) = ((c0::Real, c1::Real) -> quaternion(normal, 2pi * c0, 2pi * c1) * normal)

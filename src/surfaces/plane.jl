@@ -60,6 +60,7 @@ function minintersection!(minintersection::MinIntersection, plane::Plane{3}, ray
     alpha < _TOLERANCE && return Inf
     hassize(plane) || return nothing
 
+    x_limit, y_limit = size(plane)
     point_of_intersection = origin(ray, alpha)
     axis_aligned_vector = quaternionz(plane_normal) * (point_of_intersection - plane_center)
     abs(axis_aligned_vector[2]) > (y_limit / 2) && return nothing

@@ -9,20 +9,9 @@ struct Ring{N} <: Surface{N}
     opening_rotation_vec::SVector{N,Float64}
 
     function Ring(center::SVector{N,<:Real}, normal::SVector{N,<:Real}, innerradius::Real, outerradius::Real, interface::Interface; opening_angle::Real=pi, opening_rotation::Real=0) where {N}
-        new{N}(center, normal, innerradius, outerradius, interface, cos(opening_angle), opening_rotation, rotate_vector(quatwithaxis(SA[0, 0, 1], opening_rotation), SA[1.0, 0.0, 0.0]))
+        new{N}(center, normal, innerradius, outerradius, interface, cos(opening_angle), opening_rotation, quaternion(AXIS3_Z, opening_rotation) * AXIS3_X)
     end
 end
-
-# function quatwithaxis(axis::SVector{3,<:Real}, theta::Real)
-#     s, c = sincos(theta / 2)
-#     return Quaternion(c, s * axis[1], s * axis[2], s * axis[3])
-# end
-
-# function rotate_vector(q::Quaternion, u::SVector{3,<:Real})
-#     q_u = Quaternion(0, u[1], u[2], u[3])
-#     q_v = q * q_u * conj(q)
-#     return SVector(imag_part(q_v))
-# end
 
 center(r::Ring) = r.center
 normal(r::Ring) = r.normal
@@ -48,7 +37,7 @@ function minintersection!(minintersection::MinIntersection, ring::Ring{N}, ray::
     alpha = nominator / denominator
     alpha <= 1e-10 && return nothing
     point_of_intersection = origin(ray, alpha)
-    axis_aligned = inv(rotation(ring_normal)) * (point_of_intersection - ring_center)
+    axis_aligned = invquaternionz(ring_normal) * (point_of_intersection - ring_center)
     angle = dot(normalize(axis_aligned), opening_rotation_vec(ring))
     (angle < abs(opening_angle_cos(ring))) && return nothing
 

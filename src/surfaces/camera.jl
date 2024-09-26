@@ -10,8 +10,7 @@ mutable struct Camera{N} <: Surface{N}
     function Camera(origin::SVector{3,<:Real}, normal::SVector{3,<:Real}, focal_length::Real, size::Tuple{<:Real,<:Real}; wavelength_range::Tuple{Float64,Float64}=(0.54, 0.54), wavelength_resolution::Int=1, ray_index::Float64=1.0, interface::Interface=ConsumingInterface(), resolution::Int=128)
         new_plane_origin = origin - focal_length * normal
         plane = Plane(new_plane_origin, normal, interface, size)
-        rotation_matrix = rotation(normal)
-        position = (i::Int, j::Int) -> (rotation_matrix * (SVector((i - 0.5) * size[1] / resolution, (j - 0.5) * size[2] / resolution, 0.0) - SVector(0.5 * size[1], 0.5 * size[2], -focal_length))) + center(plane)
+        position = (i::Int, j::Int) -> (quaternionz(normal) * (SVector((i - 0.5) * size[1] / resolution, (j - 0.5) * size[2] / resolution, 0.0) - SVector(0.5 * size[1], 0.5 * size[2], -focal_length))) + center(plane)
         counter = zeros(resolution, resolution)
         new{3}(plane, position, counter, LinRange(wavelength_range..., wavelength_resolution), ray_index, length(counter) * wavelength_resolution, 1)
     end

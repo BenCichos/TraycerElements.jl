@@ -51,7 +51,7 @@ function minintersection!(minintersection::MinIntersection, circularplane::Circu
     alpha = nominator / denominator
     alpha <= 1e-10 && return nothing
     point_of_intersection = origin(ray, alpha)
-    axis_aligned = inv(rotation(plane_normal)) * (point_of_intersection - plane_center)
+    axis_aligned = inv(quaternionz(plane_normal)) * (point_of_intersection - plane_center)
     norm(axis_aligned) <= radius(circularplane) && return distance!(minintersection, alpha)
     return nothing
 end
