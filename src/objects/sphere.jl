@@ -35,7 +35,7 @@ function minintersection!(minintersection::MinIntersection, sphere::Sphere{N}, r
     b = 2 * dot(ray_direction, distance_apart)
     c = dot(distance_apart, distance_apart) - sphere_radius^2
 
-    alpha_1, alpha_2 = quadraticroots(a, b, c)
+    alpha_1, alpha_2 = roots(a, b, c)
 
     alpha_2 < 1e-10 && return nothing
     alpha_1 < 1e-10 && return distance!(minintersection, alpha_2)

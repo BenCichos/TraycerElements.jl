@@ -13,16 +13,16 @@ struct Ring{N} <: Surface{N}
     end
 end
 
-function quatwithaxis(axis::SVector{3,<:Real}, theta::Real)
-    s, c = sincos(theta / 2)
-    return Quaternion(c, s * axis[1], s * axis[2], s * axis[3])
-end
+# function quatwithaxis(axis::SVector{3,<:Real}, theta::Real)
+#     s, c = sincos(theta / 2)
+#     return Quaternion(c, s * axis[1], s * axis[2], s * axis[3])
+# end
 
-function rotate_vector(q::Quaternion, u::SVector{3,<:Real})
-    q_u = Quaternion(0, u[1], u[2], u[3])
-    q_v = q * q_u * conj(q)
-    return SVector(imag_part(q_v))
-end
+# function rotate_vector(q::Quaternion, u::SVector{3,<:Real})
+#     q_u = Quaternion(0, u[1], u[2], u[3])
+#     q_v = q * q_u * conj(q)
+#     return SVector(imag_part(q_v))
+# end
 
 center(r::Ring) = r.center
 normal(r::Ring) = r.normal

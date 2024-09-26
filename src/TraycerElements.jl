@@ -1,16 +1,16 @@
 module TraycerElements
 
-using StaticArrays
+using StaticArrays: SVector, SA, @SVector
+using LinearAlgebra: normalize, norm, dot, cross
 using TraycerCore
-import TraycerCore: origin, direction, normal, interface, tracingtypes, isobject, primitives
-import TraycerCore: minintersection!, distance!, intensity, reset!, onintersect
+using Quaternions
 
-function quadraticroots(a::Float64, b::Float64, c::Float64)::Tuple{Float64,Float64}
-    temp = b^2 - 4 * a * c
-    temp < 1e-10 && return 0.0, 0.0
-    return (-b - sqrt(temp)) / 2a, (-b + sqrt(temp)) / 2a
-end
+using Base: @kwdef
+import Base: size
 
+const _TOLERANCE = 1e-10
+
+include("utils.jl")
 include("surfaces/surfaces.jl")
 include("objects/objects.jl")
 include("compoundsurfaces/compoundsurfaces.jl")

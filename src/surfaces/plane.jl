@@ -1,40 +1,26 @@
-struct Plane{N} <: Surface{N}
+@kwdef struct Plane{N,M} <: Surface{N}
     center::SVector{N,Float64}
     normal::SVector{N,Float64}
+    size::NTuple{M,Float64}
     interface::Interface
-    size::Tuple{Float64,Float64}
 
-    function Plane(center::SVector{2,<:Real}, normal::SVector{2,<:Real}, interface, size::Real=Inf)
-        new{2}(center, normalize(normal), interface, (size, 0))
+    function Plane(center::SVector{2,<:Real}, normal::SVector{2,<:Real}, size::Real=Inf, interface=NULL_INTERFACE)
+        new{2,1}(center, normalize(normal), (size,), interface)
     end
 
-    function Plane(center::SVector{3,<:Real}, normal::SVector{3,<:Real}, interface, size::Tuple{<:Real,<:Real}=(Inf, Inf))
-        new{3}(center, normalize(normal), interface, size)
+    function Plane(center::SVector{3,<:Real}, normal::SVector{3,<:Real}, size::Tuple{<:Real,<:Real}=(Inf, Inf), interface=NULL_INTERFACE)
+        new{3,2}(center, normalize(normal), size, interface)
     end
 
-end
-
-function Plane(center::Vector{<:Real}, normal::Vector{<:Real}, refractive_index::Real, size::Real)
-    Plane(SVector{length(center)}(center), SVector{length(normal)}(normal), Interface(refractive_index), size)
-end
-
-function Plane(center::Vector{<:Real}, normal::Vector{<:Real}, interface, size::Tuple{Vararg{<:Real}})
-    Plane(SVector{length(center)}(point), SVector{length(normal)}(normal), interface, size)
-end
-
-function Plane(center::SVector{2,<:Real}, normal::SVector{2,<:Real}, refractive_index::Real, size::Real=Inf)
-    Plane(center, normal, Interface(refractive_index), size)
-end
-
-function Plane(center::SVector{3,<:Real}, normal::SVector{3,<:Real}, refractive_index::Real, size::Tuple{<:Real,<:Real}=(Inf, Inf))
-    Plane(center, normal, Interface(refractive_index), size)
 end
 
 center(plane::Plane) = plane.center
 normal(plane::Plane) = plane.normal
-size(plane::Plane) = plane.size
+size(plane::Plane{2}) = only(plane.size)
+size(plane::Plane{3}) = plane.size
+hassize(plane::Plane) = !all(isinf, size(plane))
 
-show(io::IO, plane::Plane) = print(io, "Plane($(center(plane)), $(normal(plane)), $(size(plane))")
+isinside(plane::Plane{2}, distance::Float64) = all(abs.(distance) .< (size(plane) ./ 2))
 
 function minintersection!(minintersection::MinIntersection, plane::Plane{2}, ray::Ray{2})
     plane_point = center(plane)
@@ -49,14 +35,12 @@ function minintersection!(minintersection::MinIntersection, plane::Plane{2}, ray
     alpha = nominator / denominator
 
     alpha < 1e-10 && return nothing
-    plane_size, _ = size(plane)
-    isinf(plane_size) && return alpha
+    hassize(plane) || return nothing
 
-    distance_limit = plane_size / 2
     point_of_intersection = origin(ray, alpha)
-    plane_vector = SVector(plane_normal[2], -plane_normal[1])
+    plane_vector = perpto(plane_normal)
     distance_from_center = dot(point_of_intersection - plane_point, plane_vector) |> abs
-    distance_from_center > distance_limit && return nothing
+    distance_from_center > (size(plane) / 2) && return nothing
 
     distance!(minintersection, alpha)
 end
@@ -73,15 +57,14 @@ function minintersection!(minintersection::MinIntersection, plane::Plane{3}, ray
 
     alpha = nominator / denominator
 
-    alpha < 1e-10 && return Inf
-    x_limit, y_limit = size(plane)
-    isinf(x_limit) && isinf(y_limit) && return nothing
+    alpha < _TOLERANCE && return Inf
+    hassize(plane) || return nothing
 
-    rotation_matrix = rotation(plane_normal)
     point_of_intersection = origin(ray, alpha)
-    axis_aligned_vector = inv(rotation_matrix) * (point_of_intersection - plane_center)
-    abs(axis_aligned_vector[1]) > (x_limit / 2) && return nothing
+    axis_aligned_vector = quaternionz(plane_normal) * (point_of_intersection - plane_center)
     abs(axis_aligned_vector[2]) > (y_limit / 2) && return nothing
 
     distance!(minintersection, alpha)
 end
+
+show(io::IO, plane::Plane) = print(io, "Plane($(center(plane)), $(normal(plane)), $(size(plane))")

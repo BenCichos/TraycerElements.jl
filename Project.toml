@@ -2,3 +2,8 @@ name = "TraycerElements"
 uuid = "d62d793d-b823-4745-af64-7ac03d7d081e"
 authors = ["“BenCichos” <“b.cichos@me.com”>"]
 version = "0.1.0"
+
+[deps]
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+TraycerCore = "990ad897-f6e4-4b6a-9525-da7cf5de3c51"
