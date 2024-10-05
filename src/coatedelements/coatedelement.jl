@@ -1,4 +1,4 @@
-struct CoatedElement{N,PE<:PrimitiveElement{N},CS<:Surface{N}} <: CompoundElement{N}
+@kwdef struct CoatedElement{N,PE<:PrimitiveElement{N},CS<:Surface{N}} <: CompoundElement{N}
     primitive_element::PE
     coating_surface::CS
     thickness::Float64
@@ -20,4 +20,5 @@ primitives(coated_element::CoatedElement) = [primitive_element(coated_element), 
 onintersect(coated_element::CoatedElement{N}, ray::Ray{N}, distance::Float64, normal::SVector{N,Float64}) where {N} = onintersect(primitive_element(coated_element), ray, distance, normal)
 
 normal(coated_element::CoatedElement{N}, point::SVector{N,Float64}) where {N} = normal(primitive_element(coated_element), point)
+onsurface(coated_element::CoatedElement{N}, point::SVector{N,Float64}) where {N} = onsurface(primitive_element(coated_element), point)
 minintersection!(minintersection::MinIntersection, coated_element::CoatedElement{N}, ray::Ray{N}) where {N} = minintersection!(minintersection, primitive_element(coated_element), ray)

@@ -2,15 +2,15 @@ module TraycerElements
 
 using TraycerCore
 using TraycerCore: RecursiveTracingVector, _recursivetrace!
-using ApproximateRelations
+using TraycerCore: @approx
 using StaticArrays: SVector, SA, @SVector
 using LinearAlgebra: normalize, norm, dot, cross
 using Quaternions
 
+import TraycerCore: primitives
+
 using Base: @kwdef
 import Base: size
-
-const _TOLERANCE = 1e-10
 
 include("surfaces/surfaces.jl")
 include("objects/objects.jl")

@@ -1,4 +1,4 @@
-struct SphericalCap{N} <: Surface{N}
+@kwdef struct SphericalCap{N} <: Surface{N}
     center::SVector{N,Float64}
     axis::SVector{N,Float64}
     radius::Float64
@@ -15,22 +15,6 @@ struct SphericalCap{N} <: Surface{N}
 
 end
 
-function SphericalCap(center::SVector{N,<:Real}, axis::SVector{N,<:Real}, radius::Real, theta::Real, refractive_index::Real) where {N}
-    SphericalCap(center, axis, radius, theta, Interface(refractive_index))
-end
-
-function SphericalCap(center::Vector{<:Real}, axis::Vector{<:Real}, radius::Real, theta::Real, refractive_index::Real)
-    SphericalCap(SVector{length(center)}(center), SVector{length(axis)}(axis), radius, theta, Interface(refractive_index))
-end
-
-function SphericalCap(; center::SVector{N,<:Real}, axis::SVector{N,<:Real}, radius::Real, theta::Real, refractive_index::Real) where {N}
-    SphericalCap(center, axis, radius, theta, Interface(refractive_index))
-end
-
-function HalfSphere(center::SVector{N,<:Real}, axis::SVector{N,<:Real}, radius::Real, refractive_index::Real) where {N}
-    SphericalCap(center, axis, radius, pi / 2, Interface(refractive_index))
-end
-
 radius(spherical_cap::SphericalCap) = spherical_cap.radius
 theta(spherical_cap::SphericalCap) = spherical_cap.theta
 center(spherical_cap::SphericalCap) = spherical_cap.center
@@ -39,13 +23,13 @@ normal(spherical_cap::SphericalCap{N}, point::SVector{N,Float64}) where {N} = no
 
 function onsurface(spherical_cap::SphericalCap{N}, point::SVector{N,Float64}) where {N}
     cosine_normal_axis = dot(normal(spherical_cap, point), axis(spherical_cap))
-    acos(cosine_normal_axis) > theta(spherical_cap) && return false
+    theta(spherical_cap) < acos(cosine_normal_axis) && return false
     return true
 end
 
 show(io::IO, spherical_cap::SphericalCap) = print(io, "SphericalCap($(center(spherical_cap)), $(axis(spherical_cap)), $(radius(spherical_cap)), $(theta(spherical_cap)))")
 
-function minintersection!(minintersection::MinIntersection, spherical_cap::SphericalCap{N}, ray::Ray{N}) where {N}
+@approx function minintersection!(minintersection::MinIntersection, spherical_cap::SphericalCap{N}, ray::Ray{N}) where {N}
     distance_apart = origin(ray) - center(spherical_cap)
     ray_direction = direction(ray)
     spherical_cap_radius = radius(spherical_cap)
@@ -56,11 +40,11 @@ function minintersection!(minintersection::MinIntersection, spherical_cap::Spher
 
     alpha_1, alpha_2 = findroots(a, b, c)
 
-    alpha_2 < 1e-10 && return nothing
+    0 < alpha_2 || return nothing
 
     alpha_2 = onsurface(spherical_cap, origin(ray, alpha_2)) ? alpha_2 : Inf
 
-    alpha_1 < 1e-10 && return distance!(minintersection, alpha_2)
+    0 < alpha_1 || return distance!(minintersection, alpha_2)
 
     onsurface(spherical_cap, origin(ray, alpha_1)) && return distance!(minintersection, alpha_1)
 

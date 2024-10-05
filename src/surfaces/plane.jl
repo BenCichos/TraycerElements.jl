@@ -20,32 +20,10 @@ size(plane::Plane{2}) = only(plane.size)
 size(plane::Plane{3}) = plane.size
 hassize(plane::Plane) = !all(isinf, size(plane))
 
-isinside(plane::Plane{2}, distance::Float64) = all(abs.(distance) .< (size(plane) ./ 2))
+@approx isinside(plane::Plane{2}, v::SVector{2,Float64}) = abs(v.x) < size(plane) ./ 2
+@approx isinside(plane::Plane{3}, v::SVector{3,Float64}) = all(abs.(v[1:2]) .< size(plane) ./ 2)
 
-function minintersection!(minintersection::MinIntersection, plane::Plane{2}, ray::Ray{2})
-    plane_point = center(plane)
-    plane_normal = normal(plane)
-
-    nominator = dot(plane_point - origin(ray), plane_normal)
-    iszero(nominator) && return nothing
-
-    denominator = dot(plane_normal, direction(ray))
-    iszero(denominator) && return nothing
-
-    alpha = nominator / denominator
-
-    alpha < 1e-10 && return nothing
-    hassize(plane) || return nothing
-
-    point_of_intersection = origin(ray, alpha)
-    plane_vector = perpto(plane_normal)
-    distance_from_center = dot(point_of_intersection - plane_point, plane_vector) |> abs
-    distance_from_center > (size(plane) / 2) && return nothing
-
-    distance!(minintersection, alpha)
-end
-
-function minintersection!(minintersection::MinIntersection, plane::Plane{3}, ray::Ray{3})
+@approx function minintersection!(minintersection::MinIntersection, plane::Plane{N}, ray::Ray{N})
     plane_center = center(plane)
     plane_normal = normal(plane)
 
@@ -57,13 +35,12 @@ function minintersection!(minintersection::MinIntersection, plane::Plane{3}, ray
 
     alpha = nominator / denominator
 
-    alpha < _TOLERANCE && return Inf
+    0 < alpha || return nothing
     hassize(plane) || return nothing
 
-    x_limit, y_limit = size(plane)
     point_of_intersection = origin(ray, alpha)
-    axis_aligned_vector = quaternionz(plane_normal) * (point_of_intersection - plane_center)
-    abs(axis_aligned_vector[2]) > (y_limit / 2) && return nothing
+    axis_aligned_vector = invquaternionz(plane_normal) * (point_of_intersection - plane_center)
+    isinside(plane, axis_aligned_vector) && return nothing
 
     distance!(minintersection, alpha)
 end

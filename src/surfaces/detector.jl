@@ -1,17 +1,17 @@
-struct Detector{N} <: Surface{N}
+@kwdef struct Detector{N} <: Surface{N}
     plane::Plane{N}
     binsize::Tuple{Float64,Float64}
     counter::Matrix{Float64}
     isdirectional::Bool
 
-    function Detector(origin::SVector{2,<:Real}, normal::SVector{2,<:Real}, size::Real, interface::Interface=NULL_INTERFACE; isdirectional::Bool=true, resolution::Int=128)
+    function Detector(origin::SVector{2,<:Real}, normal::SVector{2,<:Real}, size::Real, interface=NULL_INTERFACE; isdirectional::Bool=true, resolution::Int=128)
         plane = Plane(origin, normal, interface, size)
         binsize = (size / resolution, 0.0)
         counter = zeros(resolution, 1)
         new{2}(plane, binsize, counter, isdirectional)
     end
 
-    function Detector(origin::SVector{3,<:Real}, normal::SVector{3,<:Real}, size::Tuple{<:Real,<:Real}, interface::Interface=NULL_INTERFACE; isdirectional::Bool=true, resolution::Int=128)
+    function Detector(origin::SVector{3,<:Real}, normal::SVector{3,<:Real}, size::Tuple{<:Real,<:Real}, interface=NULL_INTERFACE; isdirectional::Bool=true, resolution::Int=128)
         plane = Plane(origin, normal, interface, size)
         binsize = size ./ resolution
         counter = zeros(resolution, resolution)
@@ -56,6 +56,5 @@ function onintersect(detector::Detector{3}, ray::Ray{3}, distance::Float64, norm
 end
 
 show(io::IO, detector::Detector) = print(io, "Detector($(center(detector)), $(normal(detector)), $(size(detector)), $(resolution(detector))")
-
 
 minintersection!(minintersection::MinIntersection, detector::Detector{N}, ray::Ray{N}) where {N} = minintersection!(minintersection, plane(detector), ray)
